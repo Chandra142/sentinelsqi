@@ -1,0 +1,71 @@
+name: SentinelSQI Quality Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  quality-intelligence:
+    name: Evaluate Software Correctness & Invariants
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Extract Pull Request Diff
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD > pr_changes.diff
+
+      - name: Run SentinelSQI Quality Intelligence Gate
+        id: sentinel
+        continue-on-error: true
+        run: |
+          node cli/sentinel.js --diff pr_changes.diff --intent "${{ github.event.pull_request.title }}" --desc "${{ github.event.pull_request.body }}" --threshold 60 --json > audit_result.json
+          cat audit_result.json
+
+      - name: Post PR Review Comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            if (!fs.existsSync('audit_result.json')) return;
+            const audit = JSON.parse(fs.readFileSync('audit_result.json', 'utf8'));
+
+            const badge = audit.overallQualityScore >= 60 ? '✅ APPROVED' : '❌ ' + audit.decision;
+            const body = `### 🛡️ SentinelSQI Quality Intelligence Gate: ${badge}
+            
+            | Metric | Score | Status |
+            | :--- | :--- | :--- |
+            | **Overall Correctness Score** | **${audit.overallQualityScore} / 100** | ${audit.overallQualityScore >= 60 ? 'Safe' : 'Action Required'} |
+            | **Semantic Test Adequacy** | **${audit.semanticTestAdequacyScore}%** | ${audit.semanticTestAdequacyScore >= 50 ? 'Adequate' : 'Superficial Mock Gaps'} |
+            | **Regression Risk** | **${audit.regressionRiskScore}%** | ${audit.regressionRiskScore <= 40 ? 'Low' : 'High Risk'} |
+
+            ${audit.hazards && audit.hazards.length > 0 ? `#### 🚨 Detected Architectural & Invariant Hazards:
+            ${audit.hazards.map(h => `- **[${h.severity.toUpperCase()}] ${h.hazardType}:** ${h.description}`).join('\n')}` : '✅ No severe architectural hazards detected.'}
+
+            *Automated audit performed by [SentinelSQI](https://github.com/${{ github.repository }}).*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
