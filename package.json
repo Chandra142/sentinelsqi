@@ -1,0 +1,59 @@
+{
+  "name": "sentinelsqi",
+  "version": "1.0.0",
+  "description": "AI-Powered Software Quality & Correctness Intelligence System",
+  "type": "module",
+  "homepage": "https://github.com/your-username/sentinelsqi#readme",
+  "bugs": {
+    "url": "https://github.com/your-username/sentinelsqi/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/sentinelsqi.git"
+  },
+  "keywords": [
+    "software-quality",
+    "code-intelligence",
+    "ast-analysis",
+    "static-analysis",
+    "blast-radius",
+    "ai-agent",
+    "gemini",
+    "test-generation",
+    "ci-cd-gate",
+    "developer-tools"
+  ],
+  "author": "SentinelSQI Contributors",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "server": "node server/index.js",
+    "start": "node server/index.js",
+    "cli": "node cli/sentinel.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.1",
+    "lucide-react": "^0.460.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^2.5.4"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.9.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.15",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}
